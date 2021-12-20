@@ -320,7 +320,7 @@ class device:
     async def set_temperature(self, color_temp):
         if not self.online: return False
         if await self.network.send_packet(self.id, 0xe2, [0x05, ((((color_temp)-500)/(500-153)*(100-1)-1)*-1)]):
-            self.color_temp = ((((color_temp)-500)/(500-153)*(100-1)-1)*-1)
+            self.color_temp = color_temp
             return True
         return False
 
