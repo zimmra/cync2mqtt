@@ -296,7 +296,7 @@ class network(atelink_mesh):
                     rgb = True
             else:
                 color_temp = response[3]
-                color_temp = math.floor((((color_temp)-1)/(100-1)*(153-500)-153)*-1)
+                #color_temp = math.floor((((color_temp)-1)/(100-1)*(153-500)-153)*-1)
                 rgb = False
             await self.callback(network.devicestatus(self.name,id,brightness,rgb,red,green,blue,color_temp))
 
@@ -317,6 +317,7 @@ class device:
         self._supports_rgb=None
         self._supports_temperature=None
         self._is_plug=None
+        self.reported_temp = 0
 
     async def set_temperature(self, color_temp):
         if not self.online: return False
