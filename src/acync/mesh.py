@@ -263,7 +263,7 @@ class atelink_mesh:
         return True
 
 class network(atelink_mesh):
-    devicestatus=namedtuple('DeviceStatus',['name','id','brightness','rgb','red','green','blue','temperature'])
+    devicestatus=namedtuple('DeviceStatus',['name','id','brightness','rgb','red','green','blue','color_temp'])
 
     def __init__(self,meshmacs, name, password,**kwargs):
         self.log = kwargs.get('log',logging.getLogger(__name__))
@@ -286,7 +286,7 @@ class network(atelink_mesh):
             id = response[0]
             brightness = response[2]
             (red,green,blue)=(0,0,0)
-            temperature=0
+            color_temp=0
             if brightness >= 128:
                     brightness = brightness - 128
                     red = int(((response[3] & 0xe0) >> 5) * 255 / 7)
@@ -294,9 +294,10 @@ class network(atelink_mesh):
                     blue = int((response[3] & 0x3) * 255 / 3)
                     rgb = True
             else:
-                temperature = response[3]
+                color_temp = response[3]
+                color_temp = ((((color_temp)-1)/(100-1)*(153-500)-153)*-1)
                 rgb = False
-            await self.callback(network.devicestatus(self.name,id,brightness,rgb,red,green,blue,temperature))
+            await self.callback(network.devicestatus(self.name,id,brightness,rgb,red,green,blue,color_temp))
 
 class device:
     def __init__ (self, mesh_network, name,id,mac,type=None):
@@ -306,7 +307,7 @@ class device:
         self.mac = mac
         self.type = type
         self.brightness = 0
-        self.temperature = 0
+        self.color_temp = 0
         self.red = 0
         self.green = 0
         self.blue = 0
@@ -316,10 +317,10 @@ class device:
         self._supports_temperature=None
         self._is_plug=None
 
-    async def set_temperature(self, temperature):
+    async def set_temperature(self, color_temp):
         if not self.online: return False
-        if await self.network.send_packet(self.id, 0xe2, [0x05, temperature]):
-            self.temperature = temperature
+        if await self.network.send_packet(self.id, 0xe2, [0x05, ((((color_temp)-500)/(500-153)*(100-1)-1)*-1)]):
+            self.color_temp = ((((color_temp)-500)/(500-153)*(100-1)-1)*-1)
             return True
         return False
 
